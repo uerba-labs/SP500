@@ -10,7 +10,6 @@ st.set_page_config(layout="wide", page_title="Annual Market MC Simulator")
 # --- 2. DATA LOADING & CLEANING ---
 @st.cache_data
 def process_data(file_source):
-    # Load data (handles local path or uploaded file)
     df = pd.read_excel(file_source, header=1)
     
     # Normalize column names
@@ -27,12 +26,11 @@ def process_data(file_source):
     df = df.dropna(subset=["date"])
     df["year_int"] = df["date"].astype(int)
     
-    # --- NEW: Filter for December only for the simulation ---
-    # In Schiller data, December is usually represented as Year.12
-    # We use np.isclose to avoid floating point precision issues
+    # Filter for December only (Annual view)
+    # Schiller date format is YYYY.MM (e.g. 2023.12)
     df_annual = df[np.isclose(df['date'] % 1, 0.12)].copy()
     
-    # Calculate annual returns (Dec to Dec)
+    # Calculate annual returns (December to December)
     df_annual["ret_nom"] = df_annual["total_return_nom_index"].pct_change()
     df_annual["ret_real"] = df_annual["total_return_real_index"].pct_change()
     
@@ -50,13 +48,11 @@ if uploaded_file is not None:
     st.sidebar.success("Using custom uploaded data.")
 elif os.path.exists(DEFAULT_FILE):
     data_to_load = DEFAULT_FILE
-    st.sidebar.info("Using permanent Schiller data.")
+    st.sidebar.info("Using tool embedded data series.")
 else:
     st.error(f"Default file '{DEFAULT_FILE}' not found. Please upload a file.")
     st.stop()
 
-# df = full monthly data (for historical plot)
-# df_annual = filtered december data (for simulation)
 df, df_annual = process_data(data_to_load)
 
 # --- 4. SIDEBAR PARAMETERS ---
@@ -71,12 +67,15 @@ n_sims = st.sidebar.slider("Number of Simulations", 100, 5000, 1000, step=100)
 
 # --- 5. HELPER FUNCTIONS ---
 def run_path(returns):
-    # Direct compounding of returns
-    return 100 * np.exp(np.log1p(returns).cumsum())
+    # Calculate cumulative growth
+    growth_factors = np.exp(np.log1p(returns).cumsum())
+    # Prepend 100 to ensure Year 0 = 100
+    path = np.insert(100 * growth_factors, 0, 100)
+    return path
 
 def summarize(paths, n_years):
     terminal = paths[:, -1]
-    # Annualized return calculation
+    # Annualized return calculation: (Final/Start)^(1/n) - 1
     ann_returns = (terminal / 100)**(1/n_years) - 1
     
     return {
@@ -91,7 +90,7 @@ def summarize(paths, n_years):
 
 # --- 6. MAIN PAGE ---
 st.title("Annual S&P 500 Monte Carlo Analysis")
-st.markdown("Simulation uses **December-to-December** annual returns.")
+st.markdown("All simulations start at **100** at Year 0 using **December-to-December** annual returns.")
 
 # (i) Historical Index Plot (Monthly)
 st.header("Historical Performance (Monthly View)")
@@ -117,13 +116,14 @@ nom_paths, real_paths = [], []
 
 for _ in range(n_sims):
     idx = np.random.choice(valid_indices)
-    window = df_annual.loc[idx : ].head(n_years) # Get the next n_years rows
+    window = df_annual.loc[idx : ].head(n_years) 
     nom_paths.append(run_path(window["ret_nom"].values))
     real_paths.append(run_path(window["ret_real"].values))
 
 nom_paths, real_paths = np.array(nom_paths), np.array(real_paths)
 
 fig_mc1 = go.Figure()
+# Show a sample of paths
 for i in range(min(150, n_sims)):
     fig_mc1.add_trace(go.Scatter(y=nom_paths[i], line=dict(color="rgba(0,0,255,0.03)"), showlegend=False))
 fig_mc1.add_trace(go.Scatter(y=nom_paths.mean(axis=0), name="Avg Nominal", line=dict(color="blue", width=3)))
@@ -138,7 +138,7 @@ st.table(pd.DataFrame({
 
 # (iii) Monte Carlo II: IID Annual Bootstrap
 st.header("Monte Carlo II: Independent (IID) Annual Bootstrap")
-st.write(f"Randomly drawing {n_years} independent annual returns.")
+st.write(f"Randomly drawing {n_years} independent annual returns from history.")
 
 ann_ret_nom = df_annual["ret_nom"].values
 ann_ret_real = df_annual["ret_real"].values
