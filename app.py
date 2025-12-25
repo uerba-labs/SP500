@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import os
+import streamlit.components.v1 as components
 
 # --- 1. APP CONFIGURATION ---
 st.set_page_config(layout="wide",     page_title="S&P 500 Monte Carlo Simulator | Understanding Investment Risk",
@@ -195,3 +196,25 @@ If you choose to subscribe, your email address will be processed by a third-part
 
 No personal data is sold or shared for marketing purposes.
 """)
+
+# --- 7. SUBSCRIPTION SECTION ---
+st.divider()
+st.subheader("📬 Subscribe to Project Updates")
+
+# Replace this URL with the one you copied from your Substack settings
+substack_link = "https://uerbalabs.substack.com/embed" 
+
+# Use a container to center the form
+with st.container():
+    components.html(
+        f"""
+        <div style="display: flex; justify-content: center; font-family: sans-serif;">
+            <iframe src="{substack_link}" 
+                    width="480" height="320" 
+                    style="border:1px solid #EEE; background:white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" 
+                    frameborder="0" scrolling="no">
+            </iframe>
+        </div>
+        """,
+        height=350,
+    )
