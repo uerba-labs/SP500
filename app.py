@@ -164,7 +164,7 @@ if valid_starts >= 0:
         df_stats, nom_p, real_p = get_stats_table(mc1_results, horizon, inf_rate)
         st.dataframe(df_stats, hide_index=True, use_container_width=True)
         st.info(f"**Risk of Nominal Loss**: {nom_p} out of 100 simulations resulted in a loss")
-        st.metric(f"**Risk of Real Loss**: {real_p} out of 100 simulations  did not cover for inflation", help="Scenarios that end below the red dashed inflation line.")
+        st.info(f"**Risk of Real Loss**: {real_p} out of 100 simulations  did not cover for inflation", help="Scenarios that end below the red dashed inflation line.")
 
 st.markdown("""
 While the average outcome is rather stable independently from the investment horizon selected, you should notice the wide range between the pessimistic and optimistic scenarions when selecting shorter investment horizons (**less than 10 years**). You will also see a non-negligible number of simulations registering a loss and, even more, registering an outcome that does not compensate for inflation. The situation changes when selecting longer investiment horizons (longer than 20 years).
@@ -199,8 +199,8 @@ with col5:
 with col6:
     df_stats2, nom_p2, real_p2 = get_stats_table(mc2_results, horizon, inf_rate)
     st.dataframe(df_stats2, hide_index=True, use_container_width=True)
-    st.metric(f"**Risk of Nominal Loss**: {nom_p2} out of 100 simulations resulted in a loss")
-    st.metric(f"**Risk of Real Loss**: {real_p2} out of 100 simulations did not cover for inflation")
+    st.info(f"**Risk of Nominal Loss**: {nom_p2} out of 100 simulations resulted in a loss")
+    st.info(f"**Risk of Real Loss**: {real_p2} out of 100 simulations did not cover for inflation")
 
 # --- 6. FOOTER / DISCLAIMERS ---
 st.divider() 
