@@ -4,6 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 import os
 import streamlit.components.v1 as components
+import math
 
 # --- 1. APP CONFIGURATION ---
 st.set_page_config(
@@ -34,11 +35,11 @@ st.sidebar.header("Global Parameters")
 min_y, max_y = int(df['Year'].min()), int(df['Year'].max())
 
 st.sidebar.header("Inflation Settings")
-inf_rate_pct = st.sidebar.slider("Annual Inflation Rate (%)", -1.0, 20.0, 2.0, step=0.1, help="Inflation erodes your purchasing power. This rate defines the 'Real' growth threshold.")
+inf_rate_pct = st.sidebar.slider("Annual Inflation Rate (%)", -1.0, 20.0, 3.0, step=0.1, help="Inflation erodes your purchasing power. This rate defines the 'Real' growth threshold.")
 inf_rate = inf_rate_pct / 100.0
 
 st.sidebar.header("Simulation Settings")
-horizon = st.sidebar.slider("Investment Horizon (Years)", 1, 50, 25, help="The number of years you plan to stay invested.")
+horizon = st.sidebar.slider("Investment Horizon (Years)", 1, 50, 5, help="The number of years you plan to stay invested.")
 n_sims = st.sidebar.slider("Number of Simulations", 100, 5000, 1000, step=100, help="More simulations provide a more comprehensive view of potential 'fat tail' events.")
 
 # --- 4. HELPER FUNCTIONS ---
@@ -47,31 +48,31 @@ def get_stats_table(paths, horizon, inf_rate):
     cagrs = (terminals / 100)**(1/horizon) - 1
     inf_benchmark = 100 * (1 + inf_rate)**horizon
     
-    nom_loss_freq = round((terminals < 100).mean() * 100)
-    real_loss_freq = round((terminals < inf_benchmark).mean() * 100)
+    nom_loss_freq = math.ceil((terminals < 100).mean() * 100)
+    real_loss_freq = math.ceil((terminals < inf_benchmark).mean() * 100)
     
     data = {
-        "Scenario": ["Average Outcome", "Pessimistic (Bottom 5%)", "Optimistic (Top 5%)"],
+        "Scenario": ["Average Outcome", "Pessimistic (5% percentile)", "Optimistic (95% percentile)"],
         "Final Index Value": [f"{np.mean(terminals):,.2f}", f"{np.percentile(terminals, 5):,.2f}", f"{np.percentile(terminals, 95):,.2f}"],
-        "Annualized Return (CAGR)": [f"{np.mean(cagrs):.2%}", f"{np.percentile(cagrs, 5):.2%}", f"{np.percentile(cagrs, 95):.2%}"]
+        "Annualized Return": [f"{np.mean(cagrs):.2%}", f"{np.percentile(cagrs, 5):.2%}", f"{np.percentile(cagrs, 95):.2%}"]
     }
     
     return pd.DataFrame(data), nom_loss_freq, real_loss_freq
 
 # --- 5. DASHBOARD UI ---
-st.title("Historical Fairy Tales vs. Monte Carlo Reality")
+st.title("Investment risk. The importance of a long term perspective.")
 
 st.markdown("""
-Looking at historical stock market charts often feels like reading a fairy tale—a steady climb to wealth. 
+Looking at historical stock market charts, particularly during the most recent years, often feels like reading a fairy tale—a steady climb to wealth. 
 However, history is just one path that *did* happen. To invest wisely, we must explore the thousands of 
-alternate paths that *could* happen, especially the "fat tails" where risk hides.
+alternate paths that *could* have happened, especially the "fat tails" where risk hides.
 """)
 
 with st.expander("🎓 New to investing? Read this first"):
     st.write("""
         **Nominal vs. Real:** Nominal is the money in your account; Real is what that money can actually buy. 
+        **Annualised return:** The steady annual growth rate required to reach your final balance.
         **Fat Tails:** The statistical reality that extreme market crashes happen more often than standard math predicts.
-        **CAGR:** The steady annual growth rate required to reach your final balance.
     """)
 
 # ---------------------------------------------------------
