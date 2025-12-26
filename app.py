@@ -162,9 +162,9 @@ if valid_starts >= 0:
 
     with col4:
         df_stats, nom_p, real_p = get_stats_table(mc1_results, horizon, inf_rate)
-        st.table(df_stats)
-        st.metric("Risk of Nominal Loss", f"{nom_p} out of 100 simulations resulted in a loss")
-        st.metric("Risk of Real Loss", f"{real_p} out of 100 simulations results in a return lower than the inflation", help="Scenarios that end below the red dashed inflation line.")
+        st.dataframe(df_stats, hide_index=True, use_container_width=True)
+        st.info(f"**Risk of Nominal Loss**: {nom_p} out of 100 simulations resulted in a loss")
+        st.metric(f"**Risk of Real Loss**: {real_p} out of 100 simulations  did not cover for inflation", help="Scenarios that end below the red dashed inflation line.")
 
 st.markdown("""
 While the average outcome is rather stable independently from the investment horizon selected, you should notice the wide range between the pessimistic and optimistic scenarions when selecting shorter investment horizons (**less than 10 years**). You will also see a non-negligible number of simulations registering a loss and, even more, registering an outcome that does not compensate for inflation. The situation changes when selecting longer investiment horizons (longer than 20 years).
@@ -198,9 +198,9 @@ with col5:
 
 with col6:
     df_stats2, nom_p2, real_p2 = get_stats_table(mc2_results, horizon, inf_rate)
-    st.table(df_stats2)
-    st.metric("Risk of Nominal Loss", f"{nom_p2} out of 100")
-    st.metric("Risk of Real Loss", f"{real_p2} out of 100")
+    st.dataframe(df_stats2, hide_index=True, use_container_width=True)
+    st.metric(f"**Risk of Nominal Loss**: {nom_p2} out of 100 simulations resulted in a loss")
+    st.metric(f"**Risk of Real Loss**: {real_p2} out of 100 simulations did not cover for inflation")
 
 # --- 6. FOOTER / DISCLAIMERS ---
 st.divider() 
@@ -218,8 +218,12 @@ The author assumes no responsibility for decisions made based on this tool. User
 
 ### **Privacy**
 If you choose to subscribe, your email address will be processed by a third-party email provider solely for the purpose of receiving updates about this project. You can unsubscribe at any time.
-
 No personal data is sold or shared for marketing purposes.
+
+---
+
+### **Contact**
+© 2025 Uerba Labs. All rights reserved.
 """)
 
 
@@ -236,11 +240,11 @@ with st.container():
         f"""
         <div style="display: flex; justify-content: center; font-family: sans-serif;">
             <iframe src="{substack_link}" 
-                    width="480" height="320" 
-                    style="border:1px solid #EEE; background:white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" 
+                    width="480" height="200" 
+                    style="border:none; background:white; border-radius: 12px;" 
                     frameborder="0" scrolling="no">
             </iframe>
         </div>
         """,
-        height=350,
+        height=220, # Reduced container height
     )
